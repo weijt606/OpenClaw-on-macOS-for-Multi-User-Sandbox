@@ -59,11 +59,9 @@
 ```mermaid
 graph TD
 
-    %% ===== 系统层 =====
     A[MacBook / macOS]
 
-    %% ===== 用户层 =====
-    subgraph 用户层 Users
+    subgraph U[用户层 Users]
         B[主用户 Main User<br/>Admin / 日常工作]
         C[隔离用户 openclaw<br/>Standard / 无管理员权限]
     end
@@ -71,8 +69,7 @@ graph TD
     A --> B
     A --> C
 
-    %% ===== 主用户职责 =====
-    subgraph 主用户环境
+    subgraph M[主用户环境]
         B1[办公文件 / 浏览器登录态]
         B2[开发环境 / 系统管理 / sudo]
     end
@@ -80,8 +77,7 @@ graph TD
     B --> B1
     B --> B2
 
-    %% ===== openclaw 环境 =====
-    subgraph OpenClaw 沙箱环境
+    subgraph S[OpenClaw 沙箱环境]
         C1[Homebrew / Node.js / OpenClaw]
         C2[~/.openclaw 配置]
         C3[API Key / Token]
@@ -93,8 +89,7 @@ graph TD
     C --> C3
     C --> C4
 
-    %% ===== Gateway =====
-    subgraph OpenClaw Gateway
+    subgraph G1[OpenClaw Gateway]
         D[Gateway 核心]
         E[127.0.0.1 绑定]
         F[Token Auth]
@@ -108,8 +103,7 @@ graph TD
     D --> G
     D --> H
 
-    %% ===== 模型层 =====
-    subgraph 模型 Provider
+    subgraph P[模型 Provider]
         I[云模型<br/>Kimi / DeepSeek / StepFun]
         J[本地模型<br/>Ollama / Qwen]
     end
@@ -117,19 +111,17 @@ graph TD
     D --> I
     D --> J
 
-    %% ===== 网络安全 =====
-    subgraph 网络安全
+    subgraph N[网络安全]
         K[仅本机访问]
         L[不暴露局域网]
-        M[不暴露公网]
+        M1[不暴露公网]
     end
 
     E --> K
     K --> L
-    K --> M
+    K --> M1
 
-    %% ===== 权限边界 =====
-    subgraph 权限隔离（核心安全）
+    subgraph X[权限隔离]
         N1[无法影响主用户环境]
         N2[无法读取浏览器登录态]
         N3[无法访问主用户目录]
@@ -141,7 +133,6 @@ graph TD
     C --> N3
     C --> N4
 
-    %% ===== 样式 =====
     style C fill:#1e293b,color:#fff
     style D fill:#0ea5e9,color:#fff
     style E fill:#16a34a,color:#fff
