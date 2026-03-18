@@ -58,41 +58,94 @@
 
 ```mermaid
 graph TD
-    A[MacBook / macOS] --> B[主用户 Main User<br/>Admin 或日常工作用户]
-    A --> C[隔离用户 openclaw<br/>Standard User / 非管理员]
 
-    B --> B1[办公文件 / 浏览器登录态 / 日常开发环境]
-    B --> B2[系统管理操作 / sudo / 安装系统级软件]
+    %% ===== 系统层 =====
+    A[MacBook / macOS]
 
-    C --> C1[Homebrew / Node.js / OpenClaw]
-    C --> C2[~/.openclaw 配置目录]
-    C --> C3[环境变量中的 API Key]
-    C --> C4[Ollama / 本地模型（可选）]
+    %% ===== 用户层 =====
+    subgraph 用户层 Users
+        B[主用户 Main User<br/>Admin / 日常工作]
+        C[隔离用户 openclaw<br/>Standard / 无管理员权限]
+    end
 
-    C --> D[OpenClaw Gateway]
-    D --> E[Bind: 127.0.0.1]
-    D --> F[Token Auth]
-    D --> G[Control UI / Dashboard]
-    D --> H[Telegram / 其他 Channel（可选）]
+    A --> B
+    A --> C
 
-    D --> I[云模型 Provider<br/>Kimi / DeepSeek / StepFun]
-    D --> J[本地模型 Provider<br/>Ollama / Qwen]
+    %% ===== 主用户职责 =====
+    subgraph 主用户环境
+        B1[办公文件 / 浏览器登录态]
+        B2[开发环境 / 系统管理 / sudo]
+    end
 
-    E --> K[仅本机访问]
-    K --> L[不暴露局域网]
-    K --> M[不暴露公网]
+    B --> B1
+    B --> B2
 
-    C --> N[权限边界]
-    N --> N1[不能直接影响主用户环境]
-    N --> N2[不能继承主用户浏览器会话]
-    N --> N3[不能默认访问主用户目录]
-    N --> N4[没有 sudo / admin 权限]
+    %% ===== openclaw 环境 =====
+    subgraph OpenClaw 沙箱环境
+        C1[Homebrew / Node.js / OpenClaw]
+        C2[~/.openclaw 配置]
+        C3[API Key / Token]
+        C4[Ollama / 本地模型]
+    end
 
+    C --> C1
+    C --> C2
+    C --> C3
+    C --> C4
+
+    %% ===== Gateway =====
+    subgraph OpenClaw Gateway
+        D[Gateway 核心]
+        E[127.0.0.1 绑定]
+        F[Token Auth]
+        G[Dashboard UI]
+        H[Telegram / Channel]
+    end
+
+    C --> D
+    D --> E
+    D --> F
+    D --> G
+    D --> H
+
+    %% ===== 模型层 =====
+    subgraph 模型 Provider
+        I[云模型<br/>Kimi / DeepSeek / StepFun]
+        J[本地模型<br/>Ollama / Qwen]
+    end
+
+    D --> I
+    D --> J
+
+    %% ===== 网络安全 =====
+    subgraph 网络安全
+        K[仅本机访问]
+        L[不暴露局域网]
+        M[不暴露公网]
+    end
+
+    E --> K
+    K --> L
+    K --> M
+
+    %% ===== 权限边界 =====
+    subgraph 权限隔离（核心安全）
+        N1[无法影响主用户环境]
+        N2[无法读取浏览器登录态]
+        N3[无法访问主用户目录]
+        N4[无 sudo / admin 权限]
+    end
+
+    C --> N1
+    C --> N2
+    C --> N3
+    C --> N4
+
+    %% ===== 样式 =====
     style C fill:#1e293b,color:#fff
     style D fill:#0ea5e9,color:#fff
     style E fill:#16a34a,color:#fff
     style F fill:#16a34a,color:#fff
-    style N fill:#7c3aed,color:#fff
     style N4 fill:#dc2626,color:#fff
 ```
 
