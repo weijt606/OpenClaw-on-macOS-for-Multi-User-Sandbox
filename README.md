@@ -294,6 +294,93 @@ http://127.0.0.1:18789/
 👉 如果是空的，需要重新配置
 
 
-## 🎯 总结
 
-一台 Mac + 多用户 = 安全 AI 沙箱
+## 🗂️ 跨用户文件共享（/Users/Shared）
+
+在本方案中，`openclaw` 用户与主用户是隔离的。  
+为了在**安全范围内进行数据交换**，推荐使用 macOS 自带的共享目录：
+
+    /Users/Shared
+    
+### 🧭 Finder 中的实际路径
+
+在 Finder 左侧可以看到：
+
+- Macintosh HD（或你的系统盘名称）
+
+进入后路径为：
+
+    Macintosh HD
+    └── Users
+        ├── 主用户（你的用户名）
+        ├── openclaw（沙箱用户）
+        └── Shared  ← ⭐ 关键目录
+
+
+### 📌 关键理解
+
+- `Shared` 与各个用户目录是**同级**
+- 它**不属于任何一个用户**
+- 所有用户都可以访问这个目录
+
+👉 这是 macOS 官方提供的跨用户共享机制
+
+
+### 🔐 安全模型（为什么是这里）
+
+相比直接访问其他用户目录：
+
+    /Users/username/
+
+Shared 的优势：
+
+- 不需要管理员权限
+- 不破坏用户隔离
+- 不暴露用户 Home 目录
+- 不涉及权限提升（sudo）
+
+
+### 🧠 在你的 OpenClaw 架构中的作用
+
+    主用户（Main User）
+        ↓
+    /Users/Shared   ← 数据交换层
+        ↓
+    openclaw 用户（Sandbox）
+
+
+### ⚠️ 不要误用的位置
+
+❌ 不要这样做：
+
+- 把文件放进：
+
+      /Users/主用户/Desktop
+
+  → openclaw 用户无法访问
+
+
+❌ 不要这样做：
+
+- 访问：
+
+      /Users/其他用户/
+
+  → 会触发权限限制
+
+
+### 🎯 推荐实践
+
+统一使用：
+
+    /Users/Shared/openclaw-input
+    /Users/Shared/openclaw-output
+
+作为唯一数据通道
+
+
+Shared 目录位于：
+
+    Macintosh HD → Users → Shared
+
+它是 macOS 唯一官方推荐的跨用户安全共享空间。
