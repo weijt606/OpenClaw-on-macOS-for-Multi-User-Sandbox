@@ -2,7 +2,6 @@
 
 > 在只有一台 Mac 的情况下，使用独立标准用户（如 `openclaw`）部署 OpenClaw，构建安全、隔离、低污染的 AI Agent 环境。
 
----
 
 ## 🧠 核心理念
 
@@ -15,7 +14,7 @@
 - 主用户：日常办公 / 开发
 - openclaw 用户：AI Agent / OpenClaw
 
----
+
 
 ## 🔒 为什么这样做？
 
@@ -39,27 +38,69 @@
 - 本地模型 + 云模型自由切换
 - 可独立测试环境
 
----
 
-## 🏗️ 架构图
+## 🏗️ 架构设计（安全边界与权限边界）
+
+### 设计目标
+
+在只有一台 macOS 设备的情况下，通过创建一个**独立的标准用户 `openclaw`**，把 AI Agent 的运行环境与主工作环境隔离开来。
+
+核心思路：
+
+- **主用户**：日常办公、浏览器登录态、个人文件、开发环境
+- **openclaw 用户**：专门运行 OpenClaw
+- **OpenClaw Gateway**：仅监听 `127.0.0.1`
+- **网络访问**：默认仅本机访问，不暴露到局域网或公网
+- **模型与密钥**：仅保存在 `openclaw` 用户环境中
+
+
+### Mermaid 架构图
 
 ```mermaid
 graph TD
-    A[MacBook / macOS] --> B[主用户 Main User]
-    A --> C[Sandbox 用户 openclaw]
+    A[MacBook / macOS] --> B[主用户 Main User<br/>Admin 或日常工作用户]
+    A --> C[隔离用户 openclaw<br/>Standard User / 非管理员]
+
+    B --> B1[办公文件 / 浏览器登录态 / 日常开发环境]
+    B --> B2[系统管理操作 / sudo / 安装系统级软件]
+
+    C --> C1[Homebrew / Node.js / OpenClaw]
+    C --> C2[~/.openclaw 配置目录]
+    C --> C3[环境变量中的 API Key]
+    C --> C4[Ollama / 本地模型（可选）]
 
     C --> D[OpenClaw Gateway]
-    D --> E[本地模型 Ollama]
-    D --> F[云模型 Kimi / DeepSeek]
+    D --> E[Bind: 127.0.0.1]
+    D --> F[Token Auth]
+    D --> G[Control UI / Dashboard]
+    D --> H[Telegram / 其他 Channel（可选）]
 
-    D --> G[127.0.0.1 本地访问]
+    D --> I[云模型 Provider<br/>Kimi / DeepSeek / StepFun]
+    D --> J[本地模型 Provider<br/>Ollama / Qwen]
+
+    E --> K[仅本机访问]
+    K --> L[不暴露局域网]
+    K --> M[不暴露公网]
+
+    C --> N[权限边界]
+    N --> N1[不能直接影响主用户环境]
+    N --> N2[不能继承主用户浏览器会话]
+    N --> N3[不能默认访问主用户目录]
+    N --> N4[没有 sudo / admin 权限]
+
+    style C fill:#1e293b,color:#fff
+    style D fill:#0ea5e9,color:#fff
+    style E fill:#16a34a,color:#fff
+    style F fill:#16a34a,color:#fff
+    style N fill:#7c3aed,color:#fff
+    style N4 fill:#dc2626,color:#fff
 ```
 
 ## ⚙️ 最低配置（MVP）
 
 macOS + 标准用户 + Homebrew + Node.js + OpenClaw + API Key
 
----
+
 
 ## 🚀 完整部署步骤
 
@@ -146,7 +187,7 @@ Token
 Tailscale Off  
 Service Yes
 
----
+
 
 ## 🔑 API Key 配置
 
@@ -170,7 +211,7 @@ Service Yes
     launchctl setenv DEEPSEEK_API_KEY "your_key"
     launchctl setenv STEP_API_KEY "your_key"
 
----
+
 
 ## 🚀 启动与验证
 
@@ -182,7 +223,7 @@ Service Yes
 
 http://127.0.0.1:18789/
 
----
+
 
 ## 💻 本地模型（可选）
 
@@ -190,7 +231,7 @@ http://127.0.0.1:18789/
     ollama serve
     ollama pull qwen2.5:7b
 
----
+
 
 ## 🔐 安全模型总结
 
@@ -199,7 +240,7 @@ http://127.0.0.1:18789/
 - Token 认证
 - 无公网暴露
 
----
+
 
 ## 🧹 重置环境
 
@@ -208,7 +249,50 @@ http://127.0.0.1:18789/
     rm -rf ~/.openclaw
     openclaw configure
 
----
+
+## ⚡ Quick Debug（小白必备）
+
+### 1️⃣ 检查服务是否正常
+
+    openclaw gateway status
+
+👉 正常应显示：running
+
+
+### 2️⃣ 测试连接
+
+    openclaw gateway probe
+
+👉 用来确认 OpenClaw 是否可用
+
+
+### 3️⃣ 重启（最常用修复）
+
+    openclaw gateway restart
+
+👉 出问题先重启，一半问题能解决
+
+
+### 4️⃣ 查看日志（如果没反应）
+
+    tail -f /tmp/openclaw/openclaw-*.log
+
+👉 看有没有报错
+
+
+### 5️⃣ 检查模型是否可用
+
+    openclaw models list
+
+👉 确认模型存在
+
+
+### 6️⃣ 检查 API Key 是否生效
+
+    echo $MOONSHOT_API_KEY
+
+👉 如果是空的，需要重新配置
+
 
 ## 🎯 总结
 
